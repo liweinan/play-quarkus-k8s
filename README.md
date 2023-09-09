@@ -52,3 +52,91 @@ index a4d63ca..918390f 100644
      <plugins>
 ```
 
+---
+
+```bash
+➤ mvn package -DskipTests
+...
+[INFO] [org.jboss.threads] JBoss Threads version 3.0.0.Final
+[INFO] Initializing dekorate session.
+[INFO] Default s2i build generator....
+[INFO] Registering s2i handler!
+[INFO] Generating manifests.
+[INFO] Processing kubernetes configuration.
+[INFO] Processing openshift configuration.
+[INFO] Processing s2i configuration.
+[INFO] Closing dekorate session.
+[INFO] [io.quarkus.deployment.pkg.steps.JarResultBuildStep] Building thin jar: /Users/weli/works/play-quarkus-k8s/target/play-quarkus-k8s-0.1-SNAPSHOT-runner.jar
+[INFO] [io.quarkus.deployment.QuarkusAugmentor] Quarkus augmentation completed in 1434ms
+```
+
+---
+
+```bash
+➤ ls target/kubernetes/
+kubernetes.json
+kubernetes.yml
+```
+
+---
+
+```yaml
+➤ cat target/kubernetes/kubernetes.yml
+apiVersion: "v1"
+kind: "List"
+items:
+- apiVersion: "v1"
+  kind: "Service"
+  metadata:
+    labels:
+      app: "play-quarkus-k8s"
+      version: "0.1-SNAPSHOT"
+      group: "weli"
+    name: "play-quarkus-k8s"
+  spec:
+    ports:
+    - name: "http"
+      port: 8080
+      targetPort: 8080
+    selector:
+      app: "play-quarkus-k8s"
+      version: "0.1-SNAPSHOT"
+      group: "weli"
+    type: "ClusterIP"
+- apiVersion: "apps/v1"
+  kind: "Deployment"
+  metadata:
+    labels:
+      app: "play-quarkus-k8s"
+      version: "0.1-SNAPSHOT"
+      group: "weli"
+    name: "play-quarkus-k8s"
+  spec:
+    replicas: 1
+    selector:
+      matchLabels:
+        app: "play-quarkus-k8s"
+        version: "0.1-SNAPSHOT"
+        group: "weli"
+    template:
+      metadata:
+        labels:
+          app: "play-quarkus-k8s"
+          version: "0.1-SNAPSHOT"
+          group: "weli"
+      spec:
+        containers:
+        - env:
+          - name: "KUBERNETES_NAMESPACE"
+            valueFrom:
+              fieldRef:
+                fieldPath: "metadata.namespace"
+          image: "weli/play-quarkus-k8s:0.1-SNAPSHOT"
+          imagePullPolicy: "IfNotPresent"
+          name: "play-quarkus-k8s"
+          ports:
+          - containerPort: 8080
+            name: "http"
+            protocol: "TCP"
+```
+
