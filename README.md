@@ -1,142 +1,56 @@
 # play-quarkus-k8s
 
-```bash
-$ mvn io.quarkus:quarkus-maven-plugin:1.0.0.Final:create \
--DprojectGroupId=io.weli \
--DprojectArtifactId=play-quarkus-k8s \
--DprojectVersion=0.1-SNAPSHOT \
--Dendpoint=/hello \
--DclassName=io.weli.Hello
+This project uses Quarkus, the Supersonic Subatomic Java Framework.
+
+If you want to learn more about Quarkus, please visit its website: https://quarkus.io/ .
+
+## Running the application in dev mode
+
+You can run your application in dev mode that enables live coding using:
+```shell script
+./mvnw compile quarkus:dev
 ```
 
----
+> **_NOTE:_**  Quarkus now ships with a Dev UI, which is available in dev mode only at http://localhost:8080/q/dev/.
 
-```bash
-$ mvn quarkus:add-extension -Dextensions="io.quarkus:quarkus-kubernetes"
+## Packaging and running the application
+
+The application can be packaged using:
+```shell script
+./mvnw package
+```
+It produces the `quarkus-run.jar` file in the `target/quarkus-app/` directory.
+Be aware that it’s not an _über-jar_ as the dependencies are copied into the `target/quarkus-app/lib/` directory.
+
+The application is now runnable using `java -jar target/quarkus-app/quarkus-run.jar`.
+
+If you want to build an _über-jar_, execute the following command:
+```shell script
+./mvnw package -Dquarkus.package.type=uber-jar
 ```
 
----
+The application, packaged as an _über-jar_, is now runnable using `java -jar target/*-runner.jar`.
 
-```bash
-➤ mvn quarkus:add-extension -Dextensions="io.quarkus:quarkus-kubernetes"                                                                                                                                                                           02:12:22
-[INFO] Scanning for projects...
-[INFO]
-[INFO] ----------------------< io.weli:play-quarkus-k8s >----------------------
-[INFO] Building play-quarkus-k8s 0.1-SNAPSHOT
-[INFO] --------------------------------[ jar ]---------------------------------
-[INFO]
-[INFO] --- quarkus-maven-plugin:1.0.0.Final:add-extension (default-cli) @ play-quarkus-k8s ---
-✅ Adding dependency io.quarkus:quarkus-kubernetes:jar
-[INFO] ------------------------------------------------------------------------
-[INFO] BUILD SUCCESS
-[INFO] ------------------------------------------------------------------------
-[INFO] Total time:  0.977 s
-[INFO] Finished at: 2023-09-10T02:12:26+08:00
-[INFO] ------------------------------------------------------------------------
-weli@192:~/w/play-quarkus-k8s|main⚡*?
-➤ git diff                                                                                                                                                                                                                                         02:12:26
-diff --git a/pom.xml b/pom.xml
-index a4d63ca..918390f 100644
---- a/pom.xml
-+++ b/pom.xml
-@@ -44,6 +44,10 @@
-       <artifactId>rest-assured</artifactId>
-       <scope>test</scope>
-     </dependency>
-+    <dependency>
-+      <groupId>io.quarkus</groupId>
-+      <artifactId>quarkus-kubernetes</artifactId>
-+    </dependency>
-   </dependencies>
-   <build>
-     <plugins>
+## Creating a native executable
+
+You can create a native executable using: 
+```shell script
+./mvnw package -Dnative
 ```
 
----
-
-```bash
-➤ mvn package -DskipTests
-...
-[INFO] [org.jboss.threads] JBoss Threads version 3.0.0.Final
-[INFO] Initializing dekorate session.
-[INFO] Default s2i build generator....
-[INFO] Registering s2i handler!
-[INFO] Generating manifests.
-[INFO] Processing kubernetes configuration.
-[INFO] Processing openshift configuration.
-[INFO] Processing s2i configuration.
-[INFO] Closing dekorate session.
-[INFO] [io.quarkus.deployment.pkg.steps.JarResultBuildStep] Building thin jar: /Users/weli/works/play-quarkus-k8s/target/play-quarkus-k8s-0.1-SNAPSHOT-runner.jar
-[INFO] [io.quarkus.deployment.QuarkusAugmentor] Quarkus augmentation completed in 1434ms
+Or, if you don't have GraalVM installed, you can run the native executable build in a container using: 
+```shell script
+./mvnw package -Dnative -Dquarkus.native.container-build=true
 ```
 
----
+You can then execute your native executable with: `./target/play-quarkus-k8s-0.1-SNAPSHOT-runner`
 
-```bash
-➤ ls target/kubernetes/
-kubernetes.json
-kubernetes.yml
-```
+If you want to learn more about building native executables, please consult https://quarkus.io/guides/maven-tooling.
 
----
+## Provided Code
 
-```yaml
-➤ cat target/kubernetes/kubernetes.yml
-apiVersion: "v1"
-kind: "List"
-items:
-- apiVersion: "v1"
-  kind: "Service"
-  metadata:
-    labels:
-      app: "play-quarkus-k8s"
-      version: "0.1-SNAPSHOT"
-      group: "weli"
-    name: "play-quarkus-k8s"
-  spec:
-    ports:
-    - name: "http"
-      port: 8080
-      targetPort: 8080
-    selector:
-      app: "play-quarkus-k8s"
-      version: "0.1-SNAPSHOT"
-      group: "weli"
-    type: "ClusterIP"
-- apiVersion: "apps/v1"
-  kind: "Deployment"
-  metadata:
-    labels:
-      app: "play-quarkus-k8s"
-      version: "0.1-SNAPSHOT"
-      group: "weli"
-    name: "play-quarkus-k8s"
-  spec:
-    replicas: 1
-    selector:
-      matchLabels:
-        app: "play-quarkus-k8s"
-        version: "0.1-SNAPSHOT"
-        group: "weli"
-    template:
-      metadata:
-        labels:
-          app: "play-quarkus-k8s"
-          version: "0.1-SNAPSHOT"
-          group: "weli"
-      spec:
-        containers:
-        - env:
-          - name: "KUBERNETES_NAMESPACE"
-            valueFrom:
-              fieldRef:
-                fieldPath: "metadata.namespace"
-          image: "weli/play-quarkus-k8s:0.1-SNAPSHOT"
-          imagePullPolicy: "IfNotPresent"
-          name: "play-quarkus-k8s"
-          ports:
-          - containerPort: 8080
-            name: "http"
-            protocol: "TCP"
-```
+### RESTEasy Reactive
 
+Easily start your Reactive RESTful Web Services
+
+[Related guide section...](https://quarkus.io/guides/getting-started-reactive#reactive-jax-rs-resources)
